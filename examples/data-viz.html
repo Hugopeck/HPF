@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HPF Example - Interactive Data Visualization</title>
+  <style>
+    /* HPF Styling Module */
+    :root {
+      --hpf-bg: #f8fafc;
+      --hpf-panel: #ffffff;
+      --hpf-text: #0f172a;
+      --hpf-muted: #64748b;
+      --hpf-accent: #3b82f6;
+      --hpf-border: #e2e8f0;
+    }
+
+    [data-hpf-theme='dark'] {
+      --hpf-bg: #0f172a;
+      --hpf-panel: #111827;
+      --hpf-text: #e2e8f0;
+      --hpf-muted: #94a3b8;
+      --hpf-accent: #60a5fa;
+      --hpf-border: #1f2937;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--hpf-bg);
+      color: var(--hpf-text);
+      padding: 20px;
+    }
+
+    #container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      color: var(--hpf-text);
+      font-size: 24px;
+    }
+
+    .description {
+      color: var(--hpf-muted);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-group label {
+      font-size: 13px;
+      color: var(--hpf-muted);
+      font-weight: 500;
+    }
+
+    .control-button {
+      background: var(--hpf-bg);
+      border: 1px solid var(--hpf-border);
+      color: var(--hpf-text);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .control-button:hover {
+      background: var(--hpf-accent);
+      color: white;
+      border-color: var(--hpf-accent);
+      transform: translateY(-1px);
+    }
+
+    .control-button.active {
+      background: var(--hpf-accent);
+      color: white;
+      border-color: var(--hpf-accent);
+    }
+
+    select {
+      background: var(--hpf-bg);
+      border: 1px solid var(--hpf-border);
+      color: var(--hpf-text);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .chart-container {
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--hpf-text);
+    }
+
+    svg {
+      display: block;
+      background: transparent;
+    }
+
+    /* Graph styles */
+    .hpf-graph-axis {
+      stroke: var(--hpf-border);
+      stroke-width: 1;
+    }
+
+    .hpf-graph-tick {
+      stroke: var(--hpf-border);
+      stroke-width: 1;
+    }
+
+    .hpf-graph-tick-label {
+      font-size: 11px;
+      fill: var(--hpf-muted);
+      font-family: -apple-system, sans-serif;
+    }
+
+    .hpf-graph-axis-label {
+      font-size: 12px;
+      fill: var(--hpf-text);
+      font-weight: 600;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .hpf-graph-grid {
+      stroke: var(--hpf-border);
+      stroke-width: 0.5;
+      stroke-dasharray: 2;
+      opacity: 0.5;
+    }
+
+    .hpf-graph-legend-item {
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .hpf-graph-legend-item:hover {
+      opacity: 0.7;
+    }
+
+    .hpf-graph-legend-label {
+      font-size: 12px;
+      fill: var(--hpf-text);
+      font-family: -apple-system, sans-serif;
+    }
+
+    .hpf-graph-tooltip {
+      position: fixed;
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--hpf-text);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      z-index: 1000;
+    }
+
+    .hpf-graph-tooltip.visible {
+      opacity: 1;
+    }
+
+    .instructions {
+      padding: 12px;
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--hpf-muted);
+    }
+
+    .instructions strong {
+      color: var(--hpf-text);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--hpf-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--hpf-accent);
+    }
+
+    .stat-change {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .stat-change.positive {
+      color: #22c55e;
+    }
+
+    .stat-change.negative {
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>Interactive Data Visualization Dashboard</h1>
+    <p class="description">Revenue and user metrics with interactive charts, zoom, and tooltips.</p>
+
+    <!-- Stats Summary -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">$847K</div>
+        <div class="stat-change positive">↑ 23% from last period</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Users</div>
+        <div class="stat-value">12.4K</div>
+        <div class="stat-change positive">↑ 15% from last period</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Conversion Rate</div>
+        <div class="stat-value">3.8%</div>
+        <div class="stat-change negative">↓ 0.3% from last period</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. Order Value</div>
+        <div class="stat-value">$68</div>
+        <div class="stat-change positive">↑ 7% from last period</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-group">
+        <label>Chart Type:</label>
+        <button class="control-button active" onclick="setChartType('line')" id="btn-line">Line</button>
+        <button class="control-button" onclick="setChartType('bar')" id="btn-bar">Bar</button>
+        <button class="control-button" onclick="setChartType('scatter')" id="btn-scatter">Scatter</button>
+      </div>
+      <div class="control-group">
+        <label>Dataset:</label>
+        <select onchange="changeDataset(this.value)" id="dataset-select">
+          <option value="revenue">Revenue & Expenses</option>
+          <option value="users">User Growth</option>
+          <option value="performance">Performance Metrics</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <button class="control-button" onclick="toggleSeries(0)">Toggle Series 1</button>
+        <button class="control-button" onclick="toggleSeries(1)">Toggle Series 2</button>
+      </div>
+    </div>
+
+    <!-- Chart 1: Main Chart -->
+    <div class="chart-container">
+      <div class="chart-title" id="chart1-title">Monthly Revenue vs Expenses (2025)</div>
+      <svg id="chart1" width="100%" height="400"></svg>
+    </div>
+
+    <!-- Chart 2: Secondary Chart -->
+    <div class="chart-container">
+      <div class="chart-title">Daily Active Users - Last 30 Days</div>
+      <svg id="chart2" width="100%" height="300"></svg>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <strong>Interactive features:</strong> Hover over data points to see details •
+      Switch between chart types • Toggle series visibility •
+      Change datasets to explore different metrics
+    </div>
+  </div>
+
+  <script type="module">
+    // Import HPF modules
+    import { GraphRenderer } from '../src/graph-renderer.js';
+
+    // =============================================================================
+    // Sample Datasets
+    // =============================================================================
+
+    const datasets = {
+      revenue: {
+        title: 'Monthly Revenue vs Expenses (2025)',
+        data: [
+          {
+            name: 'Revenue',
+            color: '#3b82f6',
+            values: [
+              { x: 1, y: 45000 }, { x: 2, y: 52000 }, { x: 3, y: 58000 },
+              { x: 4, y: 61000 }, { x: 5, y: 67000 }, { x: 6, y: 73000 },
+              { x: 7, y: 78000 }, { x: 8, y: 82000 }, { x: 9, y: 87000 },
+              { x: 10, y: 91000 }, { x: 11, y: 95000 }, { x: 12, y: 102000 }
+            ]
+          },
+          {
+            name: 'Expenses',
+            color: '#ef4444',
+            values: [
+              { x: 1, y: 38000 }, { x: 2, y: 41000 }, { x: 3, y: 43000 },
+              { x: 4, y: 45000 }, { x: 5, y: 48000 }, { x: 6, y: 52000 },
+              { x: 7, y: 54000 }, { x: 8, y: 57000 }, { x: 9, y: 59000 },
+              { x: 10, y: 62000 }, { x: 11, y: 64000 }, { x: 12, y: 67000 }
+            ]
+          }
+        ]
+      },
+      users: {
+        title: 'Monthly Active Users Growth',
+        data: [
+          {
+            name: 'Active Users',
+            color: '#22c55e',
+            values: [
+              { x: 1, y: 5200 }, { x: 2, y: 6100 }, { x: 3, y: 7300 },
+              { x: 4, y: 8200 }, { x: 5, y: 9100 }, { x: 6, y: 10400 },
+              { x: 7, y: 11200 }, { x: 8, y: 11800 }, { x: 9, y: 12100 },
+              { x: 10, y: 12600 }, { x: 11, y: 13200 }, { x: 12, y: 14100 }
+            ]
+          },
+          {
+            name: 'New Signups',
+            color: '#8b5cf6',
+            values: [
+              { x: 1, y: 820 }, { x: 2, y: 950 }, { x: 3, y: 1100 },
+              { x: 4, y: 980 }, { x: 5, y: 1050 }, { x: 6, y: 1240 },
+              { x: 7, y: 1180 }, { x: 8, y: 1090 }, { x: 9, y: 1020 },
+              { x: 10, y: 1150 }, { x: 11, y: 1280 }, { x: 12, y: 1420 }
+            ]
+          }
+        ]
+      },
+      performance: {
+        title: 'System Performance Metrics',
+        data: [
+          {
+            name: 'Response Time (ms)',
+            color: '#f59e0b',
+            values: [
+              { x: 1, y: 145 }, { x: 2, y: 152 }, { x: 3, y: 138 },
+              { x: 4, y: 142 }, { x: 5, y: 135 }, { x: 6, y: 128 },
+              { x: 7, y: 122 }, { x: 8, y: 118 }, { x: 9, y: 115 },
+              { x: 10, y: 112 }, { x: 11, y: 108 }, { x: 12, y: 105 }
+            ]
+          },
+          {
+            name: 'Error Rate (%)',
+            color: '#ef4444',
+            values: [
+              { x: 1, y: 2.4 }, { x: 2, y: 2.1 }, { x: 3, y: 1.9 },
+              { x: 4, y: 1.7 }, { x: 5, y: 1.5 }, { x: 6, y: 1.3 },
+              { x: 7, y: 1.1 }, { x: 8, y: 0.9 }, { x: 9, y: 0.8 },
+              { x: 10, y: 0.7 }, { x: 11, y: 0.6 }, { x: 12, y: 0.5 }
+            ]
+          }
+        ]
+      }
+    };
+
+    // Daily active users data for chart 2
+    const dailyUsersData = [
+      {
+        name: 'DAU',
+        color: '#6366f1',
+        values: Array.from({ length: 30 }, (_, i) => ({
+          x: i + 1,
+          y: 8000 + Math.random() * 2000 + i * 50
+        }))
+      }
+    ];
+
+    // =============================================================================
+    // Initialize Charts
+    // =============================================================================
+
+    const chart1 = new GraphRenderer('#chart1', {
+      width: 1100,
+      height: 400,
+      margin: { top: 30, right: 120, bottom: 50, left: 60 },
+      animate: true,
+      duration: 300
+    });
+
+    const chart2 = new GraphRenderer('#chart2', {
+      width: 1100,
+      height: 300,
+      margin: { top: 20, right: 100, bottom: 40, left: 60 },
+      animate: true,
+      duration: 300
+    });
+
+    // Set initial data
+    let currentDataset = 'revenue';
+    let currentChartType = 'line';
+    let visibleSeries = [true, true];
+
+    chart1.setData(datasets[currentDataset].data);
+    chart1.render(currentChartType);
+
+    chart2.setData(dailyUsersData);
+    chart2.render('line');
+
+    // Make chart accessible globally for toolbar actions
+    window.chart1 = chart1;
+    window.currentDataset = currentDataset;
+    window.currentChartType = currentChartType;
+
+    // =============================================================================
+    // Control Functions
+    // =============================================================================
+
+    window.setChartType = (type) => {
+      currentChartType = type;
+
+      // Update button states
+      document.querySelectorAll('.control-button').forEach(btn => {
+        if (btn.id === `btn-${type}`) {
+          btn.classList.add('active');
+        } else if (btn.id && btn.id.startsWith('btn-')) {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Re-render with new type
+      const filteredData = getFilteredData();
+      chart1.update({ data: filteredData, type: currentChartType, animate: true });
+    };
+
+    window.changeDataset = (datasetName) => {
+      currentDataset = datasetName;
+      visibleSeries = [true, true]; // Reset visibility
+
+      // Update title
+      document.getElementById('chart1-title').textContent = datasets[datasetName].title;
+
+      // Update chart
+      const filteredData = getFilteredData();
+      chart1.setData(filteredData);
+      chart1.render(currentChartType);
+    };
+
+    window.toggleSeries = (index) => {
+      visibleSeries[index] = !visibleSeries[index];
+      const filteredData = getFilteredData();
+      chart1.setData(filteredData);
+      chart1.render(currentChartType);
+    };
+
+    function getFilteredData() {
+      return datasets[currentDataset].data.filter((series, idx) => visibleSeries[idx]);
+    }
+
+    // =============================================================================
+    // Log for debugging
+    // =============================================================================
+
+    console.log('Data visualization initialized');
+    console.log('Chart 1:', chart1);
+    console.log('Chart 2:', chart2);
+    console.log('Available datasets:', Object.keys(datasets));
+    console.log('Try switching chart types, toggling series, or changing datasets!');
+
+  </script>
+</body>
+</html>

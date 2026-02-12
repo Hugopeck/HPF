@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HPF - My Presentation</title>
+  <style>
+    /* HPF Styling Module - CSS Variables for theming */
+    :root {
+      --hpf-bg: #f8fafc;
+      --hpf-panel: #ffffff;
+      --hpf-text: #0f172a;
+      --hpf-muted: #64748b;
+      --hpf-accent: #3b82f6;
+      --hpf-border: #e2e8f0;
+    }
+
+    [data-hpf-theme='dark'] {
+      --hpf-bg: #0f172a;
+      --hpf-panel: #111827;
+      --hpf-text: #e2e8f0;
+      --hpf-muted: #94a3b8;
+      --hpf-accent: #60a5fa;
+      --hpf-border: #1f2937;
+    }
+
+    /* Base styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--hpf-bg);
+      color: var(--hpf-text);
+      padding: 20px;
+    }
+
+    #container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: var(--hpf-text);
+    }
+
+    /* HPF Node Styles */
+    .hpf-node { cursor: pointer; }
+    .hpf-node.is-selected rect,
+    .hpf-node.is-selected path,
+    .hpf-node.is-selected ellipse,
+    .hpf-node.is-selected circle {
+      stroke: var(--hpf-accent);
+      stroke-width: 2.5;
+    }
+
+    /* HPF Toolbar Styles */
+    .hpf-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      padding: 8px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hpf-toolbar-button {
+      background: var(--hpf-bg);
+      border: 1px solid var(--hpf-border);
+      color: var(--hpf-text);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hpf-toolbar-button:hover {
+      background: var(--hpf-accent);
+      color: white;
+      border-color: var(--hpf-accent);
+    }
+
+    /* SVG Canvas */
+    #canvas {
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 12px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>HPF Boilerplate</h1>
+
+    <!-- Toolbar Container (uncomment to use) -->
+    <!-- <div id="toolbar" class="hpf-toolbar"></div> -->
+
+    <!-- Main SVG Canvas -->
+    <svg id="canvas" width="900" height="600">
+      <!-- Your interactive content will be rendered here -->
+    </svg>
+  </div>
+
+  <script type="module">
+    // =============================================================================
+    // HPF BOILERPLATE - Get started by uncommenting the sections below
+    // =============================================================================
+
+    // OPTION 1: Import modules from src/ (for development)
+    // Uncomment these lines to use HPF modules:
+
+    // import { createDiagramEditor } from './src/diagram-editor.js';
+    // import { createToolbarControls } from './src/toolbar-controls.js';
+    // import { createPresentationManager } from './src/presentation-manager.js';
+    // import { createGraphRenderer } from './src/graph-renderer.js';
+
+    // =============================================================================
+    // EXAMPLE: Create an Interactive Diagram
+    // =============================================================================
+
+    /*
+    const editor = createDiagramEditor({
+      svg: '#canvas',
+      data: null // or pass initial diagram data
+    });
+
+    // Add some nodes
+    const node1 = editor.addNode({
+      shape: 'roundrect',
+      label: 'Start',
+      x: 100,
+      y: 100,
+      width: 120,
+      height: 60,
+      ports: [{ side: 'right', offset: 0.5 }]
+    });
+
+    const node2 = editor.addNode({
+      shape: 'rect',
+      label: 'Process',
+      x: 300,
+      y: 100,
+      width: 120,
+      height: 60,
+      ports: [
+        { side: 'left', offset: 0.5 },
+        { side: 'right', offset: 0.5 }
+      ]
+    });
+
+    // Connect the nodes
+    editor.addLink(node1.id, node2.id, {
+      type: 'straight',
+      label: 'flow'
+    });
+
+    // Add toolbar for editing
+    const toolbar = createToolbarControls({
+      container: '#toolbar',
+      editor: editor
+    });
+    */
+
+    // =============================================================================
+    // EXAMPLE: Create a Presentation
+    // =============================================================================
+
+    /*
+    const presentation = createPresentationManager({
+      container: '#container'
+    });
+
+    // Add slides
+    presentation.addSlide({
+      content: '<h1>Welcome</h1><p>This is slide 1</p>',
+      notes: 'Introduction slide'
+    });
+
+    presentation.addSlide({
+      content: '<h1>Main Content</h1><p>This is slide 2</p>',
+      notes: 'Main points here'
+    });
+
+    // Initialize presentation
+    presentation.init();
+    */
+
+    // =============================================================================
+    // EXAMPLE: Create Data Visualizations
+    // =============================================================================
+
+    /*
+    const graphData = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      series: [
+        {
+          name: 'Revenue',
+          values: [100, 120, 150, 180, 200, 230],
+          color: '#3b82f6'
+        },
+        {
+          name: 'Expenses',
+          values: [80, 90, 100, 110, 120, 130],
+          color: '#ef4444'
+        }
+      ]
+    };
+
+    const graph = createGraphRenderer({
+      container: '#canvas',
+      data: graphData,
+      type: 'line', // 'line', 'bar', or 'scatter'
+      options: {
+        showGrid: true,
+        showLegend: true,
+        enableZoom: true,
+        enableTooltips: true
+      }
+    });
+    */
+
+    // =============================================================================
+    // YOUR CODE HERE
+    // =============================================================================
+
+    console.log('HPF Boilerplate ready! Uncomment examples above to get started.');
+    console.log('Visit https://github.com/yourusername/hpf for documentation.');
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HPF Example - System Architecture Presentation</title>
+  <style>
+    /* HPF Styling Module */
+    :root {
+      --hpf-bg: #f8fafc;
+      --hpf-panel: #ffffff;
+      --hpf-text: #0f172a;
+      --hpf-muted: #64748b;
+      --hpf-accent: #3b82f6;
+      --hpf-border: #e2e8f0;
+    }
+
+    [data-hpf-theme='dark'] {
+      --hpf-bg: #0f172a;
+      --hpf-panel: #111827;
+      --hpf-text: #e2e8f0;
+      --hpf-muted: #94a3b8;
+      --hpf-accent: #60a5fa;
+      --hpf-border: #1f2937;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--hpf-bg);
+      color: var(--hpf-text);
+      padding: 20px;
+    }
+
+    #container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Presentation Styles */
+    .hpf-presentation {
+      position: relative;
+      background: var(--hpf-bg);
+      color: var(--hpf-text);
+      padding: 16px;
+      border-radius: 16px;
+    }
+
+    .hpf-stage {
+      position: relative;
+      min-height: 480px;
+    }
+
+    .hpf-slide {
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+      transition: opacity 0.4s ease;
+      min-height: 480px;
+    }
+
+    .hpf-slide.is-hidden {
+      display: none;
+    }
+
+    .hpf-slide.is-out {
+      opacity: 0;
+    }
+
+    .hpf-slide h1 {
+      font-size: 36px;
+      margin-bottom: 16px;
+      color: var(--hpf-accent);
+    }
+
+    .hpf-slide h2 {
+      font-size: 28px;
+      margin-bottom: 12px;
+      color: var(--hpf-text);
+    }
+
+    .hpf-slide p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--hpf-muted);
+      margin-bottom: 12px;
+    }
+
+    .hpf-slide ul {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    .hpf-slide li {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--hpf-text);
+      margin-bottom: 8px;
+    }
+
+    .hpf-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .hpf-button {
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      color: var(--hpf-text);
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .hpf-button:hover {
+      background: var(--hpf-accent);
+      color: white;
+      border-color: var(--hpf-accent);
+      transform: translateY(-1px);
+    }
+
+    .hpf-progress {
+      height: 6px;
+      background: var(--hpf-border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .hpf-progress-bar {
+      height: 100%;
+      width: 0;
+      background: var(--hpf-accent);
+      transition: width 0.3s ease;
+    }
+
+    .hpf-thumbnails {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hpf-thumbnail {
+      border: 2px solid var(--hpf-border);
+      background: var(--hpf-panel);
+      color: var(--hpf-text);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .hpf-thumbnail:hover {
+      border-color: var(--hpf-accent);
+      transform: translateY(-2px);
+    }
+
+    .hpf-thumbnail.is-active {
+      border-color: var(--hpf-accent);
+      background: var(--hpf-accent);
+      color: white;
+    }
+
+    .hpf-notes {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px dashed var(--hpf-border);
+      border-radius: 12px;
+      background: var(--hpf-panel);
+    }
+
+    .hpf-notes-title {
+      font-size: 12px;
+      color: var(--hpf-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .hpf-notes-body {
+      font-size: 14px;
+      color: var(--hpf-text);
+      line-height: 1.5;
+    }
+
+    /* Diagram in slides */
+    .slide-diagram {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    svg {
+      border-radius: 8px;
+    }
+
+    .system-box {
+      fill: #dbeafe;
+      stroke: #3b82f6;
+      stroke-width: 2;
+    }
+
+    .system-label {
+      font-family: -apple-system, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      fill: var(--hpf-text);
+      text-anchor: middle;
+    }
+
+    .connection-line {
+      stroke: #3b82f6;
+      stroke-width: 2;
+      fill: none;
+      marker-end: url(#arrowhead);
+    }
+
+    .connection-label {
+      font-family: -apple-system, sans-serif;
+      font-size: 11px;
+      fill: var(--hpf-muted);
+      text-anchor: middle;
+    }
+
+    .highlight {
+      color: var(--hpf-accent);
+      font-weight: 600;
+    }
+
+    .slide-title-page {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 400px;
+    }
+
+    .slide-title-page h1 {
+      font-size: 48px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+
+  <script type="module">
+    // Import HPF modules
+    import { PresentationManager } from '../src/presentation-manager.js';
+
+    // Initialize the presentation manager
+    const presentation = new PresentationManager('#container', {
+      transition: 'fade',
+      duration: 400,
+      showNotes: true,
+      showThumbnails: true,
+      showProgress: true,
+      fullscreen: false
+    });
+
+    // =============================================================================
+    // SLIDE 1: Title Slide
+    // =============================================================================
+    presentation.addSlide(`
+      <div class="slide-title-page">
+        <h1>Microservices Architecture</h1>
+        <p style="font-size: 18px; color: var(--hpf-text);">Building Scalable Distributed Systems</p>
+        <p style="font-size: 14px; margin-top: 24px;">Press → to continue</p>
+      </div>
+    `, {
+      title: 'Title',
+      notes: 'Welcome to the microservices architecture presentation. This will cover our evolution from monolith to distributed services.'
+    });
+
+    // =============================================================================
+    // SLIDE 2: The Monolith
+    // =============================================================================
+    presentation.addSlide(`
+      <h2>Phase 1: The Monolith</h2>
+      <p>Our initial architecture was a single, unified application.</p>
+      <div class="slide-diagram">
+        <svg width="400" height="200" viewBox="0 0 400 200">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+            </marker>
+          </defs>
+
+          <!-- Client -->
+          <rect x="50" y="75" width="80" height="50" rx="8" class="system-box" />
+          <text x="90" y="105" class="system-label">Web Client</text>
+
+          <!-- Monolith -->
+          <rect x="230" y="50" width="120" height="100" rx="8" style="fill: #fef3c7; stroke: #f59e0b; stroke-width: 2;" />
+          <text x="290" y="80" class="system-label">Monolith App</text>
+          <text x="290" y="100" style="font-size: 11px; fill: #64748b; text-anchor: middle;">Auth</text>
+          <text x="290" y="115" style="font-size: 11px; fill: #64748b; text-anchor: middle;">Business Logic</text>
+          <text x="290" y="130" style="font-size: 11px; fill: #64748b; text-anchor: middle;">Data Access</text>
+
+          <!-- Connection -->
+          <line x1="130" y1="100" x2="230" y2="100" class="connection-line" />
+          <text x="180" y="90" class="connection-label">HTTP</text>
+        </svg>
+      </div>
+      <ul>
+        <li><span class="highlight">Simple</span> to develop and deploy</li>
+        <li><span class="highlight">Fast</span> in-process communication</li>
+        <li>But: Tight coupling, hard to scale independently</li>
+      </ul>
+    `, {
+      title: 'The Monolith',
+      notes: 'The monolithic architecture served us well initially. Everything was in one codebase, easy to understand and deploy. But as we grew, we faced scaling challenges.'
+    });
+
+    // =============================================================================
+    // SLIDE 3: Microservices Architecture
+    // =============================================================================
+    presentation.addSlide(`
+      <h2>Phase 2: Microservices</h2>
+      <p>Breaking down the monolith into independent services.</p>
+      <div class="slide-diagram">
+        <svg width="600" height="280" viewBox="0 0 600 280">
+          <!-- Client -->
+          <rect x="50" y="115" width="80" height="50" rx="8" class="system-box" />
+          <text x="90" y="145" class="system-label">Client</text>
+
+          <!-- API Gateway -->
+          <rect x="210" y="115" width="80" height="50" rx="8" style="fill: #e0e7ff; stroke: #6366f1; stroke-width: 2;" />
+          <text x="250" y="145" class="system-label">API Gateway</text>
+
+          <!-- Auth Service -->
+          <rect x="380" y="20" width="90" height="50" rx="8" style="fill: #dbeafe; stroke: #3b82f6; stroke-width: 2;" />
+          <text x="425" y="50" class="system-label">Auth Service</text>
+
+          <!-- User Service -->
+          <rect x="380" y="90" width="90" height="50" rx="8" style="fill: #dbeafe; stroke: #3b82f6; stroke-width: 2;" />
+          <text x="425" y="120" class="system-label">User Service</text>
+
+          <!-- Order Service -->
+          <rect x="380" y="160" width="90" height="50" rx="8" style="fill: #dbeafe; stroke: #3b82f6; stroke-width: 2;" />
+          <text x="425" y="190" class="system-label">Order Service</text>
+
+          <!-- Payment Service -->
+          <rect x="380" y="230" width="90" height="50" rx="8" style="fill: #dbeafe; stroke: #3b82f6; stroke-width: 2;" />
+          <text x="425" y="260" class="system-label">Payment Svc</text>
+
+          <!-- Connections -->
+          <line x1="130" y1="140" x2="210" y2="140" class="connection-line" />
+          <line x1="290" y1="130" x2="380" y2="45" class="connection-line" />
+          <line x1="290" y1="135" x2="380" y2="115" class="connection-line" />
+          <line x1="290" y1="145" x2="380" y2="185" class="connection-line" />
+          <line x1="290" y1="150" x2="380" y2="255" class="connection-line" />
+        </svg>
+      </div>
+      <ul>
+        <li><span class="highlight">Independent</span> deployment and scaling</li>
+        <li><span class="highlight">Technology diversity</span> - choose best tool per service</li>
+        <li><span class="highlight">Fault isolation</span> - one service failure doesn't crash all</li>
+        <li>Challenge: Distributed system complexity</li>
+      </ul>
+    `, {
+      title: 'Microservices',
+      notes: 'We decomposed the monolith into separate services. Each service has its own database and can be deployed independently. The API Gateway routes requests to appropriate services.'
+    });
+
+    // =============================================================================
+    // SLIDE 4: Data Flow Example
+    // =============================================================================
+    presentation.addSlide(`
+      <h2>Example: Processing an Order</h2>
+      <p>How a user order flows through our microservices:</p>
+      <div style="margin-top: 24px;">
+        <ol style="font-size: 16px; line-height: 2; color: var(--hpf-text);">
+          <li>User submits order via <span class="highlight">Client App</span></li>
+          <li><span class="highlight">API Gateway</span> validates JWT token</li>
+          <li><span class="highlight">Auth Service</span> confirms user identity</li>
+          <li><span class="highlight">Order Service</span> creates order record</li>
+          <li><span class="highlight">Payment Service</span> processes payment</li>
+          <li><span class="highlight">Order Service</span> updates order status</li>
+          <li>User receives confirmation</li>
+        </ol>
+      </div>
+      <p style="margin-top: 24px; font-size: 14px;">
+        Each service communicates via <span class="highlight">REST APIs</span> or <span class="highlight">message queues</span>.
+        Services are stateless and can scale horizontally.
+      </p>
+    `, {
+      title: 'Data Flow',
+      notes: 'This slide shows a real example of how services communicate. Note the inter-service communication patterns and how each service has a single responsibility.'
+    });
+
+    // =============================================================================
+    // SLIDE 5: Key Takeaways
+    // =============================================================================
+    presentation.addSlide(`
+      <h2>Key Takeaways</h2>
+      <ul style="margin-top: 24px;">
+        <li><strong>Start simple</strong> - Don't over-engineer from day one</li>
+        <li><strong>Service boundaries</strong> - Define clear responsibilities</li>
+        <li><strong>API contracts</strong> - Document and version your APIs</li>
+        <li><strong>Monitoring</strong> - Distributed tracing is essential</li>
+        <li><strong>Data consistency</strong> - Use eventual consistency patterns</li>
+        <li><strong>DevOps culture</strong> - Teams own their services end-to-end</li>
+      </ul>
+      <div style="margin-top: 40px; padding: 20px; background: var(--hpf-bg); border-radius: 12px; text-align: center;">
+        <p style="font-size: 18px; color: var(--hpf-accent); font-weight: 600;">Questions?</p>
+      </div>
+    `, {
+      title: 'Takeaways',
+      notes: 'Summary slide. Emphasize that microservices are not a silver bullet - they add complexity. Only adopt them when the benefits outweigh the costs.'
+    });
+
+    // Log presentation for debugging
+    console.log('Presentation initialized:', presentation);
+    console.log('Total slides:', presentation.slides.length);
+    console.log('Use arrow keys to navigate, or click thumbnails below.');
+
+  </script>
+</body>
+</html>
