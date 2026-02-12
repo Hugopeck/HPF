@@ -1,0 +1,247 @@
+:root {
+  --hpf-bg: #f8fafc;
+  --hpf-panel: #ffffff;
+  --hpf-text: #0f172a;
+  --hpf-muted: #64748b;
+  --hpf-accent: #3b82f6;
+  --hpf-border: #e2e8f0;
+}
+
+[data-hpf-theme='dark'] {
+  --hpf-bg: #0f172a;
+  --hpf-panel: #111827;
+  --hpf-text: #e2e8f0;
+  --hpf-muted: #94a3b8;
+  --hpf-accent: #60a5fa;
+  --hpf-border: #1f2937;
+}
+
+.hpf-node {
+  cursor: pointer;
+}
+
+.hpf-node.is-selected .hpf-node-ports circle,
+.hpf-node.is-selected rect,
+.hpf-node.is-selected path,
+.hpf-node.is-selected ellipse,
+.hpf-node.is-selected circle {
+  stroke: var(--hpf-accent);
+  stroke-width: 2.5;
+}
+
+.hpf-port {
+  transition: transform 0.15s ease;
+}
+
+.hpf-port:hover {
+  transform: scale(1.1);
+}
+
+.hpf-edge {
+  stroke: #0f172a;
+}
+
+.hpf-edge.is-selected {
+  stroke: var(--hpf-accent);
+}
+
+.hpf-edge-label {
+  font-family: 'Georgia', serif;
+}
+
+.hpf-edge-handle {
+  cursor: move;
+}
+
+.hpf-lasso {
+  pointer-events: none;
+}
+
+.hpf-context-menu {
+  position: fixed;
+  background: var(--hpf-panel);
+  border: 1px solid var(--hpf-border);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  padding: 8px;
+  border-radius: 8px;
+  z-index: 9999;
+}
+
+.hpf-context-menu button {
+  background: transparent;
+  border: none;
+  color: var(--hpf-text);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.hpf-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--hpf-panel);
+  border: 1px solid var(--hpf-border);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.hpf-toolbar-button {
+  background: var(--hpf-bg);
+  border: 1px solid var(--hpf-border);
+  color: var(--hpf-text);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.hpf-toolbar-panel {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+  background: var(--hpf-panel);
+  border: 1px solid var(--hpf-border);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.hpf-panel-title {
+  font-size: 12px;
+  color: var(--hpf-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hpf-inspector,
+.hpf-search,
+.hpf-notes-panel,
+.hpf-theme {
+  display: grid;
+  gap: 6px;
+}
+
+.hpf-inspector input,
+.hpf-search input,
+.hpf-notes-panel textarea,
+.hpf-theme select {
+  border: 1px solid var(--hpf-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: 'Georgia', serif;
+  color: var(--hpf-text);
+}
+
+.hpf-presentation {
+  position: relative;
+  background: var(--hpf-bg);
+  color: var(--hpf-text);
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.hpf-presentation.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  padding: 24px;
+  z-index: 999;
+}
+
+.hpf-stage {
+  position: relative;
+  min-height: 360px;
+}
+
+.hpf-slide {
+  background: var(--hpf-panel);
+  border: 1px solid var(--hpf-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+}
+
+.hpf-slide.transition-fade {
+  transition: opacity 0.4s ease;
+}
+
+.hpf-slide.is-hidden {
+  display: none;
+}
+
+.hpf-slide.is-in {
+  opacity: 0;
+}
+
+.hpf-slide.is-out {
+  opacity: 0;
+}
+
+.hpf-progress {
+  height: 6px;
+  background: var(--hpf-border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.hpf-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--hpf-accent);
+  transition: width 0.3s ease;
+}
+
+.hpf-thumbnails {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.hpf-thumbnail {
+  border: 1px solid var(--hpf-border);
+  background: var(--hpf-panel);
+  color: var(--hpf-text);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.hpf-thumbnail.is-active {
+  border-color: var(--hpf-accent);
+  color: var(--hpf-accent);
+}
+
+.hpf-notes {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--hpf-border);
+  border-radius: 12px;
+  background: var(--hpf-panel);
+}
+
+.hpf-notes-title {
+  font-size: 12px;
+  color: var(--hpf-muted);
+  margin-bottom: 4px;
+}
+
+.hpf-notes-body {
+  font-size: 12px;
+  color: var(--hpf-text);
+}
+
+.hpf-graph-tooltip {
+  position: absolute;
+  background: var(--hpf-panel);
+  border: 1px solid var(--hpf-border);
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--hpf-text);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}

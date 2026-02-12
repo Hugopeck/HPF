@@ -6,6 +6,16 @@ export function createEl(tag, attrs = {}, ns = SVG_NS) {
   return el;
 }
 
+export function createSVGEl(tag, attrs = {}, children = []) {
+  const el = createEl(tag, attrs, SVG_NS);
+  if (children && children.length) {
+    children.forEach((child) => {
+      if (child) el.append(child);
+    });
+  }
+  return el;
+}
+
 export function setAttrs(el, attrs = {}) {
   Object.entries(attrs).forEach(([key, value]) => {
     if (value === null || value === undefined) return;
@@ -23,6 +33,15 @@ export function setAttrs(el, attrs = {}) {
     }
     el.setAttribute(key, String(value));
   });
+}
+
+export function select(selector, scope = document) {
+  return scope.querySelector(selector);
+}
+
+export function addEvent(el, type, handler, options) {
+  el.addEventListener(type, handler, options);
+  return () => el.removeEventListener(type, handler, options);
 }
 
 export function createEventBus() {
@@ -86,6 +105,41 @@ export function clamp(value, min, max) {
 
 export function uuid(prefix = 'id') {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function deepClone(value) {
+  return value ? JSON.parse(JSON.stringify(value)) : value;
+}
+
+export function debounce(fn, wait = 120) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
+export function rafThrottle(fn) {
+  let scheduled = false;
+  let lastArgs = null;
+  return (...args) => {
+    lastArgs = args;
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      fn(...lastArgs);
+    });
+  };
+}
+
+export function shallowDiff(next, prev) {
+  const changes = {};
+  const keys = new Set([...Object.keys(prev || {}), ...Object.keys(next || {})]);
+  keys.forEach((key) => {
+    if (next?.[key] !== prev?.[key]) changes[key] = next?.[key];
+  });
+  return changes;
 }
 
 export function getPointerPosition(evt, referenceEl) {

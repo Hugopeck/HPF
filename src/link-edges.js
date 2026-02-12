@@ -32,6 +32,12 @@ export class LinkEdge {
     this.id = options.id || uuid('edge');
     this.source = options.source || null;
     this.target = options.target || null;
+    this.type = options.type || 'curved';
+    this.labelText = options.label || '';
+    this.deleteOnClick = options.deleteOnClick ?? true;
+    this.listeners = new Map();
+    this.bend = null;
+    this.group = createEl('g', { class: 'hpf-edge-group', 'data-id': this.id });
     this.path = createEl('path', {
       fill: 'none',
       stroke: options.stroke || '#0f172a',
@@ -39,8 +45,35 @@ export class LinkEdge {
       'marker-end': `url(#${ensureArrowMarker(svg).id})`
     });
     this.path.classList.add('hpf-edge');
-    this.svg.append(this.path);
+    this.label = createEl('text', {
+      class: 'hpf-edge-label',
+      'font-size': 12,
+      'text-anchor': 'middle',
+      fill: options.labelColor || '#0f172a'
+    });
+    this.label.textContent = this.labelText;
+    this.handle = createEl('circle', {
+      r: 5,
+      class: 'hpf-edge-handle',
+      fill: '#94a3b8'
+    });
+    this.group.append(this.path, this.label);
+    this.svg.append(this.group);
+    this._attachEvents();
     this.update();
+  }
+
+  on(event, handler) {
+    const set = this.listeners.get(event) || new Set();
+    set.add(handler);
+    this.listeners.set(event, set);
+    return () => set.delete(handler);
+  }
+
+  emit(event, payload) {
+    const set = this.listeners.get(event);
+    if (!set) return;
+    [...set].forEach((handler) => handler(payload));
   }
 
   setEndpoints(source, target) {
@@ -49,19 +82,95 @@ export class LinkEdge {
     this.update();
   }
 
+  setLabel(text) {
+    this.labelText = text;
+    this.label.textContent = text;
+  }
+
   update() {
     if (!this.source || !this.target) return;
     const start = this._resolvePoint(this.source);
     const end = this._resolvePoint(this.target);
-    const dx = Math.abs(end.x - start.x);
-    const dy = Math.abs(end.y - start.y);
-    const curve = Math.max(dx, dy) * 0.25;
-    const path = `M ${start.x} ${start.y} C ${start.x + curve} ${start.y} ${end.x - curve} ${end.y} ${end.x} ${end.y}`;
+    const path = this._buildPath(start, end);
     setAttrs(this.path, { d: path });
+    this._positionLabel();
+    this._positionHandle();
   }
 
   remove() {
-    this.path.remove();
+    this.group.remove();
+  }
+
+  _buildPath(start, end) {
+    if (this.type === 'straight') {
+      return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+    }
+    if (this.type === 'orthogonal') {
+      if (!this.bend) {
+        this.bend = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+      }
+      return `M ${start.x} ${start.y} L ${this.bend.x} ${start.y} L ${this.bend.x} ${end.y} L ${end.x} ${end.y}`;
+    }
+    const dx = Math.abs(end.x - start.x);
+    const dy = Math.abs(end.y - start.y);
+    const curve = Math.max(dx, dy) * 0.25;
+    return `M ${start.x} ${start.y} C ${start.x + curve} ${start.y} ${end.x - curve} ${end.y} ${end.x} ${end.y}`;
+  }
+
+  _positionLabel() {
+    if (!this.labelText) {
+      this.label.textContent = '';
+      return;
+    }
+    const length = this.path.getTotalLength();
+    const mid = this.path.getPointAtLength(length / 2);
+    setAttrs(this.label, { x: mid.x, y: mid.y - 6 });
+  }
+
+  _positionHandle() {
+    if (this.type !== 'orthogonal') {
+      this.handle.remove();
+      return;
+    }
+    if (!this.handle.isConnected) this.group.append(this.handle);
+    const start = this._resolvePoint(this.source);
+    const end = this._resolvePoint(this.target);
+    if (!this.bend) {
+      this.bend = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+    }
+    setAttrs(this.handle, { cx: this.bend.x, cy: this.bend.y });
+  }
+
+  _attachEvents() {
+    this.path.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      if (evt.shiftKey) {
+        this.emit('reconnect', this);
+        return;
+      }
+      this.emit('click', this);
+      if (this.deleteOnClick) this.emit('remove', this);
+    });
+    this.path.addEventListener('dblclick', (evt) => {
+      evt.stopPropagation();
+      this.emit('remove', this);
+    });
+
+    this.handle.addEventListener('pointerdown', (evt) => {
+      evt.stopPropagation();
+      if (this.type !== 'orthogonal') return;
+      const move = (moveEvt) => {
+        const next = getPointerPosition(moveEvt, this.svg);
+        this.bend = { x: next.x, y: next.y };
+        this.update();
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up, { once: true });
+    });
   }
 
   _resolvePoint(endpoint) {
