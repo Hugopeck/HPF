@@ -56,8 +56,19 @@ Create a single HTML file and inline the modules you need.
 </html>
 ```
 
+## Examples
+
+Get started quickly with ready-to-use examples:
+
+- **[boilerplate.html](boilerplate.html)** - Minimal starter template with commented code and instructions
+- **[examples/flowchart.html](examples/flowchart.html)** - Interactive flowchart editor with drag-and-drop nodes, connectable ports, and full editing capabilities
+- **[examples/presentation.html](examples/presentation.html)** - Multi-slide system architecture presentation with navigation, transitions, and speaker notes
+- **[examples/data-viz.html](examples/data-viz.html)** - Interactive data visualization dashboard with multiple chart types, zoom, and tooltips
+
+All examples are self-contained HTML files that work offline. Simply open them in a browser to see HPF in action, then view source to learn how they work.
+
 ## Styling Module (MVP)
-The MVP styling is shipped as `src/styling-module.css`. Paste it into your HTML’s `<style>` tag. Additional styles/themes are planned as optional snippets later.
+The MVP styling is shipped as `src/styling-module.css`. Paste it into your HTML's `<style>` tag. Additional styles/themes are planned as optional snippets later.
 
 ## API Highlights
 - `createDiagramEditor({ svg, data })`

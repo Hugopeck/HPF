@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HPF Example - Interactive Flowchart</title>
+  <style>
+    /* HPF Styling Module */
+    :root {
+      --hpf-bg: #f8fafc;
+      --hpf-panel: #ffffff;
+      --hpf-text: #0f172a;
+      --hpf-muted: #64748b;
+      --hpf-accent: #3b82f6;
+      --hpf-border: #e2e8f0;
+    }
+
+    [data-hpf-theme='dark'] {
+      --hpf-bg: #0f172a;
+      --hpf-panel: #111827;
+      --hpf-text: #e2e8f0;
+      --hpf-muted: #94a3b8;
+      --hpf-accent: #60a5fa;
+      --hpf-border: #1f2937;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--hpf-bg);
+      color: var(--hpf-text);
+      padding: 20px;
+    }
+
+    #container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      color: var(--hpf-text);
+      font-size: 24px;
+    }
+
+    .description {
+      color: var(--hpf-muted);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .hpf-node { cursor: pointer; }
+    .hpf-node.is-selected rect,
+    .hpf-node.is-selected path,
+    .hpf-node.is-selected ellipse,
+    .hpf-node.is-selected circle {
+      stroke: var(--hpf-accent);
+      stroke-width: 2.5;
+    }
+
+    .hpf-port {
+      transition: transform 0.15s ease;
+    }
+
+    .hpf-port:hover {
+      transform: scale(1.3);
+    }
+
+    .hpf-edge {
+      stroke: var(--hpf-text);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .hpf-edge.is-selected {
+      stroke: var(--hpf-accent);
+      stroke-width: 3;
+    }
+
+    .hpf-edge-label {
+      font-family: 'Georgia', serif;
+      font-size: 12px;
+      fill: var(--hpf-text);
+    }
+
+    .hpf-lasso {
+      fill: var(--hpf-accent);
+      fill-opacity: 0.1;
+      stroke: var(--hpf-accent);
+      stroke-width: 1;
+      stroke-dasharray: 4;
+      pointer-events: none;
+    }
+
+    .hpf-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hpf-toolbar-button {
+      background: var(--hpf-bg);
+      border: 1px solid var(--hpf-border);
+      color: var(--hpf-text);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .hpf-toolbar-button:hover {
+      background: var(--hpf-accent);
+      color: white;
+      border-color: var(--hpf-accent);
+      transform: translateY(-1px);
+    }
+
+    .hpf-toolbar-button:active {
+      transform: translateY(0);
+    }
+
+    .hpf-toolbar-button.destructive:hover {
+      background: #ef4444;
+      border-color: #ef4444;
+    }
+
+    .separator {
+      width: 1px;
+      background: var(--hpf-border);
+      margin: 0 4px;
+    }
+
+    #canvas {
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 12px;
+      display: block;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .instructions {
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--hpf-panel);
+      border: 1px solid var(--hpf-border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--hpf-muted);
+    }
+
+    .instructions strong {
+      color: var(--hpf-text);
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>Interactive Flowchart Editor</h1>
+    <p class="description">A complete workflow diagram with drag-and-drop nodes, connectable ports, and full editing capabilities.</p>
+
+    <!-- Toolbar -->
+    <div id="toolbar" class="hpf-toolbar">
+      <button class="hpf-toolbar-button" onclick="addStartNode()">+ Start Node</button>
+      <button class="hpf-toolbar-button" onclick="addProcessNode()">+ Process</button>
+      <button class="hpf-toolbar-button" onclick="addDecisionNode()">+ Decision</button>
+      <button class="hpf-toolbar-button" onclick="addEndNode()">+ End Node</button>
+      <div class="separator"></div>
+      <button class="hpf-toolbar-button destructive" onclick="deleteSelected()">Delete Selected</button>
+      <button class="hpf-toolbar-button" onclick="clearAll()">Clear All</button>
+      <div class="separator"></div>
+      <button class="hpf-toolbar-button" onclick="undo()">Undo</button>
+      <button class="hpf-toolbar-button" onclick="redo()">Redo</button>
+      <div class="separator"></div>
+      <button class="hpf-toolbar-button" onclick="exportDiagram()">Export JSON</button>
+    </div>
+
+    <!-- SVG Canvas -->
+    <svg id="canvas" width="100%" height="600" viewBox="0 0 1200 600"></svg>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <strong>How to use:</strong> Drag nodes to reposition • Click nodes to select • Shift+click for multi-select •
+      Drag from connection ports (small circles) to create links • Double-click nodes to edit labels •
+      Right-click for context menu • Mouse wheel to zoom • Drag canvas to pan
+    </div>
+  </div>
+
+  <script type="module">
+    // Import HPF modules
+    import { DiagramEditor } from '../src/diagram-editor.js';
+
+    // Initialize the diagram editor
+    const editor = new DiagramEditor('#canvas', {
+      panZoom: true,
+      wheelZoom: true,
+      collision: false
+    });
+
+    // Make editor globally accessible for toolbar buttons
+    window.editor = editor;
+
+    // =============================================================================
+    // Create Initial Flowchart: User Registration Workflow
+    // =============================================================================
+
+    // Node 1: Start
+    const startNode = editor.addNode({
+      shape: 'roundrect',
+      label: 'User Visits Site',
+      x: 100,
+      y: 150,
+      width: 140,
+      height: 60,
+      fill: '#dbeafe',
+      stroke: '#3b82f6',
+      ports: [{ side: 'right', offset: 0.5 }]
+    });
+
+    // Node 2: Process
+    const formNode = editor.addNode({
+      shape: 'rect',
+      label: 'Fill Registration Form',
+      x: 320,
+      y: 150,
+      width: 160,
+      height: 60,
+      fill: '#e0e7ff',
+      stroke: '#6366f1',
+      ports: [
+        { side: 'left', offset: 0.5 },
+        { side: 'right', offset: 0.5 }
+      ]
+    });
+
+    // Node 3: Decision
+    const validationNode = editor.addNode({
+      shape: 'diamond',
+      label: 'Valid Data?',
+      x: 580,
+      y: 140,
+      width: 100,
+      height: 80,
+      fill: '#fef3c7',
+      stroke: '#f59e0b',
+      ports: [
+        { side: 'left', offset: 0.5 },
+        { side: 'top', offset: 0.5 },
+        { side: 'right', offset: 0.5 },
+        { side: 'bottom', offset: 0.5 }
+      ]
+    });
+
+    // Node 4: Error Process
+    const errorNode = editor.addNode({
+      shape: 'rect',
+      label: 'Show Errors',
+      x: 580,
+      y: 280,
+      width: 100,
+      height: 50,
+      fill: '#fee2e2',
+      stroke: '#ef4444',
+      ports: [
+        { side: 'top', offset: 0.5 },
+        { side: 'left', offset: 0.5 }
+      ]
+    });
+
+    // Node 5: Success Process
+    const saveNode = editor.addNode({
+      shape: 'rect',
+      label: 'Save to Database',
+      x: 760,
+      y: 150,
+      width: 140,
+      height: 60,
+      fill: '#d1fae5',
+      stroke: '#10b981',
+      ports: [
+        { side: 'left', offset: 0.5 },
+        { side: 'right', offset: 0.5 }
+      ]
+    });
+
+    // Node 6: End
+    const endNode = editor.addNode({
+      shape: 'roundrect',
+      label: 'Welcome User',
+      x: 980,
+      y: 150,
+      width: 120,
+      height: 60,
+      fill: '#dcfce7',
+      stroke: '#22c55e',
+      ports: [{ side: 'left', offset: 0.5 }]
+    });
+
+    // =============================================================================
+    // Connect the nodes with labeled links
+    // =============================================================================
+
+    // Main flow
+    editor.addLink(startNode.id, formNode.id, {
+      type: 'straight',
+      sourcePort: 0,
+      targetPort: 0,
+      label: ''
+    });
+
+    editor.addLink(formNode.id, validationNode.id, {
+      type: 'straight',
+      sourcePort: 1,
+      targetPort: 0,
+      label: 'submit'
+    });
+
+    editor.addLink(validationNode.id, saveNode.id, {
+      type: 'straight',
+      sourcePort: 2,
+      targetPort: 0,
+      label: 'yes'
+    });
+
+    editor.addLink(saveNode.id, endNode.id, {
+      type: 'straight',
+      sourcePort: 1,
+      targetPort: 0,
+      label: ''
+    });
+
+    // Error flow
+    editor.addLink(validationNode.id, errorNode.id, {
+      type: 'straight',
+      sourcePort: 3,
+      targetPort: 0,
+      label: 'no'
+    });
+
+    editor.addLink(errorNode.id, formNode.id, {
+      type: 'curved',
+      sourcePort: 1,
+      targetPort: 0,
+      label: 'retry'
+    });
+
+    // =============================================================================
+    // Toolbar Actions
+    // =============================================================================
+
+    let nodeCounter = 1;
+
+    window.addStartNode = () => {
+      editor.addNode({
+        shape: 'roundrect',
+        label: `Start ${nodeCounter++}`,
+        x: 200 + Math.random() * 200,
+        y: 100 + Math.random() * 200,
+        width: 120,
+        height: 60,
+        fill: '#dbeafe',
+        stroke: '#3b82f6',
+        ports: [
+          { side: 'right', offset: 0.5 },
+          { side: 'bottom', offset: 0.5 }
+        ]
+      });
+    };
+
+    window.addProcessNode = () => {
+      editor.addNode({
+        shape: 'rect',
+        label: `Process ${nodeCounter++}`,
+        x: 200 + Math.random() * 200,
+        y: 100 + Math.random() * 200,
+        width: 140,
+        height: 60,
+        fill: '#e0e7ff',
+        stroke: '#6366f1',
+        ports: [
+          { side: 'left', offset: 0.5 },
+          { side: 'right', offset: 0.5 },
+          { side: 'top', offset: 0.5 },
+          { side: 'bottom', offset: 0.5 }
+        ]
+      });
+    };
+
+    window.addDecisionNode = () => {
+      editor.addNode({
+        shape: 'diamond',
+        label: `Decision ${nodeCounter++}`,
+        x: 200 + Math.random() * 200,
+        y: 100 + Math.random() * 200,
+        width: 100,
+        height: 80,
+        fill: '#fef3c7',
+        stroke: '#f59e0b',
+        ports: [
+          { side: 'left', offset: 0.5 },
+          { side: 'right', offset: 0.5 },
+          { side: 'top', offset: 0.5 },
+          { side: 'bottom', offset: 0.5 }
+        ]
+      });
+    };
+
+    window.addEndNode = () => {
+      editor.addNode({
+        shape: 'roundrect',
+        label: `End ${nodeCounter++}`,
+        x: 200 + Math.random() * 200,
+        y: 100 + Math.random() * 200,
+        width: 100,
+        height: 60,
+        fill: '#dcfce7',
+        stroke: '#22c55e',
+        ports: [
+          { side: 'left', offset: 0.5 },
+          { side: 'top', offset: 0.5 }
+        ]
+      });
+    };
+
+    window.deleteSelected = () => {
+      // Delete selected nodes
+      editor.selectedNodes.forEach(node => {
+        editor.removeNode(node.id);
+      });
+      editor.selectedNodes.clear();
+
+      // Delete selected links
+      editor.selectedLinks.forEach(link => {
+        editor.removeLink(link);
+      });
+      editor.selectedLinks.clear();
+    };
+
+    window.clearAll = () => {
+      if (confirm('Clear all nodes and links?')) {
+        editor.nodes.forEach((node, id) => {
+          editor.removeNode(id);
+        });
+      }
+    };
+
+    window.undo = () => {
+      editor.undo();
+    };
+
+    window.redo = () => {
+      editor.redo();
+    };
+
+    window.exportDiagram = () => {
+      const data = editor.export();
+      console.log('Diagram data:', data);
+
+      // Create downloadable JSON file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'flowchart-diagram.json';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      alert('Diagram exported! Check your downloads folder.');
+    };
+
+    // Log editor for debugging
+    console.log('Flowchart editor initialized:', editor);
+    console.log('Try dragging nodes, connecting ports, or adding new elements!');
+
+  </script>
+</body>
+</html>
